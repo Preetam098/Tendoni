@@ -1,0 +1,23 @@
+```plaintext
+# Ignore pnpm store
+.pnpm/
+
+# Ignore Node.js build artifacts
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Ignore Next.js build directory
+/.next/
+
+# Ignore pnpm lock file
+# pnpm-lock.yaml
+
+# Ignore VSCode settings
+.vscode/
+
+# Ignore TypeScript build artifacts
+*.tsbuildinfo
+
+# Ignore macOS system files
+.DS_Store

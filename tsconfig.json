@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "typeRoots": ["node_modules/@types"],
+    "types": ["prop-types"],
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./src/*"],
+      "@mui/system": ["./node_modules/@mui/system"],
+      "@apis/*": ["./src/utils/apis/*"],
+      "@models/*": ["./src/utils/models/*"],
+      "@middlewares/*": ["./src/utils/middlewares/*"],
+      "@hooks/*": ["./src/utils/hooks/*"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/(DashboardLayout)/components/dataGrid/newtempPermissionUpdate.tsx"],
+  "exclude": ["node_modules"]
+}
