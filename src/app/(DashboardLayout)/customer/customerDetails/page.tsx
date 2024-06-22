@@ -2,37 +2,25 @@
 import React, { useState } from "react";
 import PageContainer from "../../components/container/PageContainer";
 import DashboardCard from "../../components/shared/DashboardCard";
+import CloseIcon from "@mui/icons-material/Close";
 import { GridColDef } from "@mui/x-data-grid";
 import CommonDataModel from "@/utils/models/CommonDataModel";
-import { getAllCustomer } from "@/utils/apis/Customer";
+import {
+  getAllCustomerAddress,
+  getEcommerceCustomerAddress,
+} from "@/utils/apis/Customer";
 import FullFeaturedCrudGrid from "../../components/dataGrid/newtemp";
-import CustomerAddress from "../customerAddress";
+import { Box } from "@mui/material";
 
-const CustomerDetails = () => {
-  const CustomerColumnDefinition: GridColDef[] = [
+const CustomerDetails = ({ id, onClose }) => {
+  console.log(id, "iiidd");
+  const CustomerAddressColumnDefinition: GridColDef[] = [
     {
       field: "name",
       headerName: "Customer Name",
       flex: 1,
       editable: true,
-    },
-    // { field: "id", headerName: "id", flex: 1, editable: true },
-    {
-      field: "shopName",
-      headerName: "Shop Name",
-      align: "left",
-      flex: 1,
-      headerAlign: "left",
-      editable: true,
-    },
-    {
-      field: "email",
-      headerName: "Email",
-      align: "left",
-      flex: 1,
-      headerAlign: "left",
-      editable: true,
-    },
+    },   
     {
       field: "number",
       headerName: "Number",
@@ -41,94 +29,91 @@ const CustomerDetails = () => {
       headerAlign: "left",
       editable: true,
     },
-    {
-      field: "status",
-      headerName: "status",
-      align: "left",
-      flex: 1,
-      headerAlign: "left",
-      editable: true,
-    },
+    { field: "addressLine1", headerName: "Address Line 1", flex: 1 },
+    { field: "addressLine2", headerName: "Address Line 2", flex: 1 },
+    { field: "zipcode", headerName: "Zipcode", flex: 1 },
+    { field: "state", headerName: "State", flex: 1 },
+    { field: "city", headerName: "City", flex: 1 },
+    { field: "country", headerName: "Country", flex: 1 },
+    { field: "landmark", headerName: "Landmark", flex: 1 },
   ];
+
   const [request, setRequest] = useState<boolean>();
-  const [isCustomerUserVisible, setCustomerUserVisible] = useState(false);
-  const [customerId, setCustomerId] = useState(null);
   const [columnRow, setColumnRow] = useState([]);
   const [isClose, setIsClose] = useState(false);
-
-  const [customer, setCustomers] = useState<CommonDataModel>({
-    columns: CustomerColumnDefinition,
+  const [customersAddress, setCustomersAddress] = useState<CommonDataModel>({
+    columns: CustomerAddressColumnDefinition,
     rows: columnRow,
   });
 
   React.useEffect(() => {
-    getAllCustomer().then?.((customers) => {
+    getEcommerceCustomerAddress(id).then?.((customersAddress) => {
+      if (!customersAddress) {
+        setCustomersAddress(null);
+        setColumnRow(null);
+        return;
+      }
       var data: any = [];
-      for (let i = 0; i < customers?.length; i++) {
+      for (let i = 0; i < customersAddress?.length; i++) {
         const element = {
-          id: customers[i].userId,
-          name: customers[i].name,
-          status: customers[i].status,
-          email: customers[i].email,
-          shopName: customers[i].shopName,
-          number: customers[i].number,
-        };
+          id: customersAddress[i].addressId,
+          name: customersAddress[i].name,
+          number: customersAddress[i].number,
+          addressLine1: customersAddress[i].addressLine1,
+          addressLine2: customersAddress[i].addressLine2,
+          city: customersAddress[i].city,
+          country: customersAddress[i].country,
+          landmark: customersAddress[i].landmark,
+          state: customersAddress[i].state,
+          zipcode: customersAddress[i].zipcode
+      };
         data.push(element);
       }
-      setCustomers({
-        columns: CustomerColumnDefinition,
+      setCustomersAddress({
+        columns: CustomerAddressColumnDefinition,
         rows: data,
       });
-      setCustomers((prev) => ({
+      setCustomersAddress((prev) => ({
         ...prev,
         rows: data,
       }));
       setColumnRow(data);
     });
   }, [request]);
-
-  const handleVisibilityClick = (id: any) => {
-    setCustomerId(id);
-    setCustomerUserVisible(true);
-  };
-  const CurrentVariant = () => {};
   const deleteCurrentVariantKey = () => {};
   const putCurrentVariantKey = () => {};
-  return (
-    <>
-      <PageContainer title="Customer " description="Customer">
-        {/* <Snackers
-          open={snackbarOpen}
-          closeSnacker={closeSnacker}
-          message={message}
-        /> */}
-        {isCustomerUserVisible ? (
-          <CustomerAddress
-            id={customerId}
-            onClose={() => setCustomerUserVisible(false)}
-          />
-        ) : (
-          <DashboardCard title="Customer">
-            <FullFeaturedCrudGrid
-              rowData={customer.rows}
-              columnData={customer.columns}
-              setColumnRow={setCustomers}
-              hideEditButton={true}
-              hideDeleteButton={true}
-              postApi={CurrentVariant}
-              putApi={putCurrentVariantKey}
-              deleteApi={deleteCurrentVariantKey}
-              showVisibilityIcon={true}
-              handleVisibilityClick={handleVisibilityClick}
-              setIsClose={setIsClose}
-              isClose={isClose}
-            />
+  const CurrentVariant = () => {};
+  const handleVisibilityClick = () => {};
 
-            {/* <FullFeaturedCrudGridDemo /> */}
-          </DashboardCard>
-        )}
-      </PageContainer>
-    </>
+
+  console.log(customersAddress , 'address')
+  return (
+    <PageContainer title="Customer Address " description="Customer Address">
+     
+      <DashboardCard title="Customer Address ">
+        <Box>
+          <div style={{ display: "flex", justifyContent: "end" }}>
+            <CloseIcon onClick={onClose} style={{ cursor: "pointer" }} />
+          </div>
+          <FullFeaturedCrudGrid
+            rowData={customersAddress.rows}
+            columnData={customersAddress.columns}
+            setColumnRow={setCustomersAddress}
+            hideEditButton={true}
+            hideDeleteButton={true}
+            postApi={CurrentVariant}
+            putApi={putCurrentVariantKey}
+            deleteApi={deleteCurrentVariantKey}
+            handleVisibilityClick={handleVisibilityClick}
+            showVisibilityIcon={false}
+            setIsClose={setIsClose}
+            isClose={isClose}
+          />
+
+          
+        </Box>
+      </DashboardCard>
+    </PageContainer>
   );
 };
 
