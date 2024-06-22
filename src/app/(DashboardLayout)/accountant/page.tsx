@@ -40,8 +40,6 @@ import { getAllOrder, getAllWebsiteOrder } from "@/utils/apis/Order";
 import { approvePayment, postPayment } from "@/utils/apis/Payment";
 import toast, { Toaster } from "react-hot-toast";
 
-
-
 const OrderPage = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -52,10 +50,15 @@ const OrderPage = () => {
   const [amount, setAmount] = useState("");
   const [notes, setNotes] = useState("");
   const [allOrders, setAllOrders] = useState<any>("");
-  const[orderData , setOrderData] = useState<any>('')
-  const[message , setMessage] = useState('')
-  const[dueDate ,setDueDate] = useState('')
-
+  const [orderData, setOrderData] = useState<any>("");
+  const [message, setMessage] = useState("");
+  const [dueDate, setDueDate] = useState("");
+  const [errors, setErrors] = useState<any>({
+    paymentDate: "",
+    paymentMode: "",
+    amount: "",
+    dueDate: "",
+  });
   // const handlePopoverOpen = (event) => {
   //   setAnchorEl(event.currentTarget);
   // };
@@ -71,9 +74,9 @@ const OrderPage = () => {
     handlePopoverClose();
   };
 
-  const handlePopoverOpen = (event,row) => {
-console.log(row , 'row')
-    setOrderData(row)
+  const handlePopoverOpen = (event, row) => {
+    console.log(row, "row");
+    setOrderData(row);
     setAnchorEl(event.currentTarget);
   };
 
@@ -110,53 +113,67 @@ console.log(row , 'row')
   };
 
   const handleCreatePayment = () => {
-    const payload=({
-      orderId:orderData.orderId,
+    let errors = {};
+    if (!paymentDate) {
+      errors.paymentDate = "Payment Date is required";
+      toast.error("Payment Date is required");
+    }
+    if (!paymentMode) {
+      errors.paymentMode = "Payment Mode is required";
+      toast.error("Payment Mode is required");
+    }
+    if (!amount) {
+      errors.amount = "Amount is required";
+      toast.error("Amount is required");
+    }
+    if (Object.keys(errors).length > 0) {
+      setErrors(errors);
+      return;
+    }
+    const payload = {
+      orderId: orderData.orderId,
       paymentDate,
       paymentMode,
       amount,
       notes,
-    })
+    };
     postPayment(payload)
-    .then((response) => {
-      toast.success(`${response.message}`);
-      setMessage(response.message);
-      setSidebarOpen(false);
-      setIsNewPaymentModalOpen(false)
-    })
-    .catch((error) => {
-      setMessage(error);
-    });
+      .then((response) => {
+        toast.success(`${response.message}`);
+        setMessage(response.message);
+        setSidebarOpen(false);
+        setIsNewPaymentModalOpen(false);
+      })
+      .catch((error) => {
+        setMessage(error);
+      });
   };
 
-
-  const handleApproved =()=>{
+  const handleApproved = () => {
     let errors = {};
     if (!dueDate) {
       errors.dueDate = "Due Date is required";
-      toast.error('Due Date is required')
+      toast.error("Due Date is required");
     }
     if (Object.keys(errors).length > 0) {
       setErrors(errors);
       return;
     }
 
-    const payload =({
-        orderData:orderData?.orderId,
-        dueDate,
-    })
+    const payload = {
+      orderData: orderData?.orderId,
+      dueDate,
+    };
     approvePayment(payload)
-    .then((response) => {
-     
-      toast.success(`${response.message}`);
-      setMessage(response.message);
-      setSidebarOpen(false);
-      
-    })
-    .catch((error) => {
-      setMessage(error);
-    });
-  }
+      .then((response) => {
+        toast.success(`${response.message}`);
+        setMessage(response.message);
+        setSidebarOpen(false);
+      })
+      .catch((error) => {
+        setMessage(error);
+      });
+  };
 
   React.useEffect(() => {
     getAllOrder().then((orders) => {
@@ -175,9 +192,9 @@ console.log(row , 'row')
       }));
       setAllOrders(data);
     });
-  } , [])
+  }, []);
 
-  console.log(allOrders,'ordel')
+  console.log(allOrders, "ordel");
 
   const paymentData = [
     {
@@ -318,75 +335,90 @@ console.log(row , 'row')
                             </TableRow>
                           </TableHead>
                           <TableBody>
-                            {allOrders && allOrders.map((row, index) => (
-                              <TableRow >
-                                <TableCell>{index + 1}</TableCell>
-                                <TableCell>{row.orderId}</TableCell>
-                                <TableCell>{row.orderDate}</TableCell>
-                                <TableCell>{row.customerName}</TableCell>
-                                <TableCell>{row.orderStatus}</TableCell>
-                                <TableCell>{row.paymentDetails?.paymentAmount}</TableCell>
-                                <TableCell>{row.paymentDetails?.paidAmount || '-'}</TableCell>
-                                <TableCell>{row.paymentDetails?.DueAmount || '-'}</TableCell>
-                                <TableCell>{row.paymentDetails?.paymentStatus}</TableCell>
-                                <TableCell>
-                                  <IconButton
-                                    aria-owns={
-                                      open ? "mouse-over-popover" : undefined
-                                    }
-                                    aria-haspopup="true"
-                                    onClick={(e)=>handlePopoverOpen(e , row)}
-                                  >
-                                    <MoreVert />
-                                  </IconButton>
-                                  <Popover
-                                    id="mouse-over-popover"
-                                    open={open}
-                                    anchorEl={anchorEl}
-                                    anchorOrigin={{
-                                      vertical: "bottom",
-                                      horizontal: "left",
-                                    }}
-                                    transformOrigin={{
-                                      vertical: "top",
-                                      horizontal: "right",
-                                    }}
-                                    onClose={handlePopoverClose}
-                                  >
-                                    <MenuItem onClick={()=>handleViewClick(row)}>
-                                      <IconButton>
-                                        <Visibility />
-                                      </IconButton>
-                                      View
-                                    </MenuItem>
-                                    <MenuItem onClick={handleDeleteClick}>
-                                      <IconButton>
-                                        <Delete />
-                                      </IconButton>
-                                      Delete
-                                    </MenuItem>
-                                    <MenuItem onClick={handlePaymentClick}>
-                                      <IconButton>
-                                        <Payment />
-                                      </IconButton>
-                                      View Payment
-                                    </MenuItem>
-                                    <MenuItem onClick={()=>handleAddPaymentClick(orderData)}>
-                                      <IconButton>
-                                        <AddCircleOutline />
-                                      </IconButton>
-                                      Add New Payment
-                                    </MenuItem>
-                                    <MenuItem onClick={handleDownloadClick}>
-                                      <IconButton>
-                                        <CloudDownload />
-                                      </IconButton>
-                                      Download Invoice
-                                    </MenuItem>
-                                  </Popover>
-                                </TableCell>
-                              </TableRow>
-                            ))} 
+                            {allOrders &&
+                              allOrders.map((row, index) => (
+                                <TableRow>
+                                  <TableCell>{index + 1}</TableCell>
+                                  <TableCell>{row.orderId}</TableCell>
+                                  <TableCell>{row.orderDate}</TableCell>
+                                  <TableCell>{row.customerName}</TableCell>
+                                  <TableCell>{row.orderStatus}</TableCell>
+                                  <TableCell>
+                                    {row.paymentDetails?.paymentAmount}
+                                  </TableCell>
+                                  <TableCell>
+                                    {row.paymentDetails?.paidAmount || "-"}
+                                  </TableCell>
+                                  <TableCell>
+                                    {row.paymentDetails?.DueAmount || "-"}
+                                  </TableCell>
+                                  <TableCell>
+                                    {row.paymentDetails?.paymentStatus}
+                                  </TableCell>
+                                  <TableCell>
+                                    <IconButton
+                                      aria-owns={
+                                        open ? "mouse-over-popover" : undefined
+                                      }
+                                      aria-haspopup="true"
+                                      onClick={(e) => handlePopoverOpen(e, row)}
+                                    >
+                                      <MoreVert />
+                                    </IconButton>
+                                    <Popover
+                                      id="mouse-over-popover"
+                                      open={open}
+                                      anchorEl={anchorEl}
+                                      anchorOrigin={{
+                                        vertical: "bottom",
+                                        horizontal: "left",
+                                      }}
+                                      transformOrigin={{
+                                        vertical: "top",
+                                        horizontal: "right",
+                                      }}
+                                      onClose={handlePopoverClose}
+                                    >
+                                      <MenuItem
+                                        onClick={() => handleViewClick(row)}
+                                      >
+                                        <IconButton>
+                                          <Visibility />
+                                        </IconButton>
+                                        View
+                                      </MenuItem>
+                                      <MenuItem onClick={handleDeleteClick}>
+                                        <IconButton>
+                                          <Delete />
+                                        </IconButton>
+                                        Delete
+                                      </MenuItem>
+                                      <MenuItem onClick={handlePaymentClick}>
+                                        <IconButton>
+                                          <Payment />
+                                        </IconButton>
+                                        View Payment
+                                      </MenuItem>
+                                      <MenuItem
+                                        onClick={() =>
+                                          handleAddPaymentClick(orderData)
+                                        }
+                                      >
+                                        <IconButton>
+                                          <AddCircleOutline />
+                                        </IconButton>
+                                        Add New Payment
+                                      </MenuItem>
+                                      <MenuItem onClick={handleDownloadClick}>
+                                        <IconButton>
+                                          <CloudDownload />
+                                        </IconButton>
+                                        Download Invoice
+                                      </MenuItem>
+                                    </Popover>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
                           </TableBody>
                         </Table>
                       </TableContainer>
@@ -428,10 +460,17 @@ console.log(row , 'row')
               </span>
             </Typography>
             <Box>
-              <Button variant="contained" onClick={()=>handleAddPaymentClick(orderData)}>
+              <Button
+                variant="contained"
+                onClick={() => handleAddPaymentClick(orderData)}
+              >
                 Add New Payment
               </Button>
-              <Button variant="contained" onClick={handleApproved} style={{ marginLeft: "5px" }}>
+              <Button
+                variant="contained"
+                onClick={handleApproved}
+                style={{ marginLeft: "5px" }}
+              >
                 Approved Payment
               </Button>
               <IconButton onClick={handleSidebarClose}>
@@ -458,7 +497,7 @@ console.log(row , 'row')
                 <TableRow>
                   <TableCell>
                     <Typography variant="subtitle1">
-                   {orderData?.orderDate}
+                      {orderData?.orderDate}
                     </Typography>
                   </TableCell>
                   <TableCell>
@@ -474,15 +513,13 @@ console.log(row , 'row')
                           fontSize: "12px",
                         }}
                       >
-                   {orderData?.orderStatus}
-                      
+                        {orderData?.orderStatus}
                       </span>
                     </Typography>
                   </TableCell>
                   <TableCell>
                     <Typography variant="subtitle1">
-                   {orderData?.customerName}
-                    
+                      {orderData?.customerName}
                     </Typography>
                   </TableCell>
                 </TableRow>
@@ -517,16 +554,20 @@ console.log(row , 'row')
                           borderRadius: "4px",
                         }}
                       >
-                   {orderData?.paymentDetails?.paymentStatus}
-                   {}
+                        {orderData?.paymentDetails?.paymentStatus}
+                        {}
                       </span>
                     </Typography>
                   </TableCell>
                   <TableCell>
-                    <Typography variant="subtitle1">{orderData?.customerName}</Typography>
+                    <Typography variant="subtitle1">
+                      {orderData?.customerName}
+                    </Typography>
                   </TableCell>
                   <TableCell>
-                    <Typography variant="subtitle1">{orderData.paymentDetails?.paymentAmount}</Typography>
+                    <Typography variant="subtitle1">
+                      {orderData.paymentDetails?.paymentAmount}
+                    </Typography>
                   </TableCell>
                 </TableRow>
               </TableBody>
@@ -544,10 +585,14 @@ console.log(row , 'row')
                 </TableRow>
                 <TableRow>
                   <TableCell>
-                    <Typography variant="subtitle1">{orderData.paymentDetails?.paidAmount || '-'}</Typography>
+                    <Typography variant="subtitle1">
+                      {orderData.paymentDetails?.paidAmount || "-"}
+                    </Typography>
                   </TableCell>
                   <TableCell>
-                    <Typography variant="subtitle1">{orderData.paymentDetails?.dueAmount || '-'}</Typography>
+                    <Typography variant="subtitle1">
+                      {orderData.paymentDetails?.dueAmount || "-"}
+                    </Typography>
                   </TableCell>
                   <TableCell>
                     <Typography variant="subtitle1">00.0</Typography>
@@ -583,6 +628,7 @@ console.log(row , 'row')
                     fullWidth
                     margin="normal"
                   />
+            {errors && <span style={{color : 'red'}}>{errors.dueDate}</span>}
                 </div>
                 <div>
                   <Button variant="contained">Save</Button>
@@ -667,7 +713,9 @@ console.log(row , 'row')
         open={isNewPaymentModalOpen}
         onClose={handleNewPaymentCloseModal}
       >
-        <DialogTitle onClick={()=>handleAddPaymentClick(orderData)}>Add New Payment</DialogTitle>
+        <DialogTitle onClick={() => handleAddPaymentClick(orderData)}>
+          Add New Payment
+        </DialogTitle>
         <Divider />
         <DialogContent>
           <form>
@@ -683,6 +731,7 @@ console.log(row , 'row')
               value={paymentDate}
               onChange={(e) => setPaymentDate(e.target.value)}
             />
+            {errors && <span style={{color : 'red'}}>{errors.paymentDate}</span>}
             <TextField
               required
               label="Payment Mode"
@@ -696,6 +745,8 @@ console.log(row , 'row')
               <MenuItem value="Credit Card">Credit Card</MenuItem>
               <MenuItem value="Bank Transfer">Bank Transfer</MenuItem>
             </TextField>
+            {errors && <span style={{color:'red'}}>{errors.paymentMode}</span>}
+
             <TextField
               required
               label="Amount"
@@ -705,6 +756,8 @@ console.log(row , 'row')
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
             />
+            {errors && <span style={{color : 'red'}}>{errors.amount}</span>}
+
             <TextField
               label="Notes"
               multiline
@@ -714,12 +767,13 @@ console.log(row , 'row')
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
             />
+
           </form>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleNewPaymentCloseModal}>Cancel</Button>
           <Button
-           onClick={handleCreatePayment}
+            onClick={handleCreatePayment}
             variant="contained"
             color="primary"
             type="submit"
@@ -729,7 +783,6 @@ console.log(row , 'row')
         </DialogActions>
       </Dialog>
       <Toaster />
-
     </>
   );
 };
