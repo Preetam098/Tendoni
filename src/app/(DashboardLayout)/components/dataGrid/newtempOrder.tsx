@@ -28,9 +28,10 @@ import DeleteModal from "@/utils/models/CommonDeleteModel";
 import { Switch } from "@mui/material";
 import { IconEye } from "@tabler/icons-react";
 import { DownloadOutlined } from "@mui/icons-material";
-import { saveAs } from 'file-saver';
+import { saveAs } from "file-saver";
 
 interface CommonDataGridProps {
+  fullData: any;
   rowData: any;
   columnData: any[];
   setColumnRow?: (newModel: any) => void;
@@ -38,12 +39,13 @@ interface CommonDataGridProps {
   putApi?: (editData: any) => void;
   deleteApi?: (deleteData: any) => void;
   showVisibilityIcon?: boolean;
-  handleVisibilityClick?: (id: any) => void;
+  handleVisibilityClick?: (id: any , data:any) => void;
   hideEditButton?: boolean;
   hideDownloadButton?: boolean;
   setIsClose?: any;
   isClose?: any;
 }
+
 interface rowInterface {
   rowData: any;
 }
@@ -79,9 +81,10 @@ const FullFeaturedCrudGrid: React.FC<CommonDataGridProps> = ({
   const [itemIdToDelete, setItemIdToDelete] = useState<GridRowId | null>(null);
   const [newRowData, setNewRowData] = React.useState<any>(null);
   const [currentStatus, setCurrentStatus] = React.useState<any>(false);
-  const handleVisibilityIconClick = (id: GridRowId) => () => {
-    handleVisibilityClick(id); // Call the prop function
+  const handleVisibilityIconClick = (id: GridRowId , data:any) => () => {
+    handleVisibilityClick(id , data); 
   };
+
   const headerData: HeaderData[] = columnData;
   const userInfo: Record<string, string> = {};
   headerData.forEach((item) => {
@@ -202,7 +205,9 @@ const FullFeaturedCrudGrid: React.FC<CommonDataGridProps> = ({
       headerName: "Actions",
       flex: 1,
       cellClassName: "actions",
-      getActions: ({ id }: any) => {
+      getActions: (data: any) => {
+        // console.log(data ,' ffffddd')
+        const { id } = data;
         const isInEditMode = rowModesModel[id]?.mode === GridRowModes.Edit;
         if (isInEditMode) {
           return [
@@ -239,7 +244,7 @@ const FullFeaturedCrudGrid: React.FC<CommonDataGridProps> = ({
             <GridActionsCellItem
               icon={<IconEye />}
               label="Show"
-              onClick={() => router.push("/orders/orderDetails")}
+              onClick={handleVisibilityIconClick(id , data)}
               color="inherit"
             />
           );
@@ -264,7 +269,7 @@ const FullFeaturedCrudGrid: React.FC<CommonDataGridProps> = ({
               icon={<VisibilityOutlinedIcon />}
               label="Visibility"
               color="inherit"
-              onClick={handleVisibilityIconClick(id)}
+              onClick={handleVisibilityIconClick(id , data)}
               // Handle the onClick event for visibility icon if needed
             />
           );

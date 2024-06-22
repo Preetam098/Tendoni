@@ -28,13 +28,50 @@ import {
 } from "@mui/x-data-grid";
 import RecentTransactions from "../../components/dashboard/RecentTransactions";
 import { IconShoppingCart } from "@tabler/icons-react";
+import { postOrderStatus } from "@/utils/apis/Order";
+import React, { useState } from "react";
+import toast, { Toaster } from "react-hot-toast";
 
-const OrderDetailsPage = () => {
+const OrderDetailsPage = ({ data, onClose }) => {
+  const { row } = data;
+  const { customerOrderId } = data.row;
+  const { products } = data.row;
+  const [orderStatus, setOrderStatus] = useState<any>("");
+  const [formValues, setFormValues] = useState<any>({
+    orderId: customerOrderId,
+  });
+  const [errors, setErrors] = useState("");
+
+  console.log(data, "data");
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormValues({ ...formValues, [name]: value });
+  };
+
+  console.log("fomr", formValues);
+
+  const handleStatusSubmit = () => {
+    if (!formValues?.orderStatus) {
+      toast.error("Order Status is required");
+      return;
+    }
+    postOrderStatus(formValues)
+      .then((orders) => {
+        toast.success(orders?.message);
+        setOrderStatus(data);
+        setErrors("");
+      })
+      .catch((error) => {
+        console.error("Error fetching order status:", error);
+      });
+  };
+
   const columns: GridColDef[] = [
     { field: "id", headerName: "Sr No.", width: 90 },
     {
       field: "itemName",
-      headerName: "Item Details",
+      headerName: "Item Name",
       width: 150,
       editable: true,
       filterable: true,
@@ -78,99 +115,16 @@ const OrderDetailsPage = () => {
       filterable: true,
     },
   ];
+  const rows = products.map((product, index) => ({
+    id: index + 1,
+    itemName: product.ProductName,
+    itemPrice: `$${product.price}`,
+    productVariant: product.value,
+    Tax: 0, // Replace with actual tax value if available
+    ItemDiscount: 0, // Replace with actual discount value if available
+    TotalPrice: parseInt(product.price) * parseInt(product.quantity), // Calculate total price
+  }));
 
-  const rows = [
-    {
-      id: 1,
-      itemName: "Nike Sneakers",
-      itemPrice: "$123",
-      productVariant: "200gm",
-      Tax: 101,
-      ItemDiscount: 120,
-      TotalPrice: 150,
-    },
-    {
-      id: 2,
-      itemName: "Nike Sneakers",
-      itemPrice: "$123",
-      productVariant: "200gm",
-      Tax: 101,
-      ItemDiscount: 120,
-      TotalPrice: 150,
-    },
-    {
-      id: 3,
-      itemName: "Nike Sneakers",
-      itemPrice: "$123",
-      productVariant: "200gm",
-      Tax: 101,
-      ItemDiscount: 120,
-      TotalPrice: 150,
-    },
-    {
-      id: 4,
-      itemName: "Nike Sneakers",
-      itemPrice: "$123",
-      productVariant: "200gm",
-      Tax: 101,
-      ItemDiscount: 120,
-      TotalPrice: 150,
-    },
-    {
-      id: 5,
-      itemName: "Nike Sneakers",
-      itemPrice: "$123",
-      productVariant: "200gm",
-      Tax: 101,
-      ItemDiscount: 120,
-      TotalPrice: 150,
-    },
-    {
-      id: 6,
-      itemName: "Nike Sneakers",
-      itemPrice: "$123",
-      productVariant: "200gm",
-      Tax: 101,
-      ItemDiscount: 120,
-      TotalPrice: 150,
-    },
-    {
-      id: 7,
-      itemName: "Nike Sneakers",
-      itemPrice: "$123",
-      productVariant: "200gm",
-      Tax: 101,
-      ItemDiscount: 120,
-      TotalPrice: 150,
-    },
-    {
-      id: 8,
-      itemName: "Nike Sneakers",
-      itemPrice: "$123",
-      productVariant: "200gm",
-      Tax: 101,
-      ItemDiscount: 120,
-      TotalPrice: 150,
-    },
-    {
-      id: 9,
-      itemName: "Nike Sneakers",
-      itemPrice: "$123",
-      productVariant: "200gm",
-      Tax: 101,
-      ItemDiscount: 120,
-      TotalPrice: 150,
-    },
-    {
-      id: 10,
-      itemName: "Nike Sneakers",
-      itemPrice: "$123",
-      productVariant: "200gm",
-      Tax: 101,
-      ItemDiscount: 120,
-      TotalPrice: 150,
-    },
-  ];
   return (
     <>
       <div
@@ -184,11 +138,21 @@ const OrderDetailsPage = () => {
         <div>
           <div style={{ display: "flex", alignItems: "center" }}>
             <Typography variant="h4" sx={{ fontSize: "1.125rem" }}>
-              Order Details
+              Ecommerce Order Details
             </Typography>
           </div>
         </div>
-        <div>
+
+        <div className="g-2">
+          <Button
+            onClick={onClose}
+            style={{
+              marginRight: "1.5rem",
+            }}
+            variant="contained"
+          >
+            Back
+          </Button>
           <Button variant="contained">Print Invoice</Button>
         </div>
       </div>
@@ -206,7 +170,7 @@ const OrderDetailsPage = () => {
                           fontSize: "1rem",
                         }}
                       >
-                        Order Id #001
+                        {row?.orderId}
                       </Typography>
                       <Typography
                         variant="h6"
@@ -216,7 +180,7 @@ const OrderDetailsPage = () => {
                           marginTop: "0.3rem",
                         }}
                       >
-                        Aug 17, 2023, 5:48 (ET)
+                        {row?.orderDate}
                       </Typography>
                     </Grid>
                     <Grid item sm={6}>
@@ -237,7 +201,7 @@ const OrderDetailsPage = () => {
                               color: "#697a8d !important",
                             }}
                           >
-                            Status:&nbsp; Pending
+                            Status:&nbsp; {row?.orderStatus}
                           </Typography>
                           <Typography
                             variant="h6"
@@ -247,7 +211,8 @@ const OrderDetailsPage = () => {
                               marginTop: "0.3rem",
                             }}
                           >
-                            Payment Method:&nbsp; Online
+                            Payment Method:&nbsp;
+                            {row?.paymentDetails?.paymentMethod}
                           </Typography>
                           <Typography
                             variant="h6"
@@ -257,9 +222,10 @@ const OrderDetailsPage = () => {
                               marginTop: "0.3rem",
                             }}
                           >
-                            Payment Status:&nbsp; Unpaind
+                            Payment Status:&nbsp;{" "}
+                            {row?.paymentDetails?.paymentStatus}
                           </Typography>
-                          <Typography
+                          {/* <Typography
                             variant="h6"
                             sx={{
                               fontSize: "14px",
@@ -268,7 +234,7 @@ const OrderDetailsPage = () => {
                             }}
                           >
                             Order Verification Code:&nbsp; 06450
-                          </Typography>
+                          </Typography> */}
                         </div>
                       </Box>
                     </Grid>
@@ -294,7 +260,8 @@ const OrderDetailsPage = () => {
                               fontSize: "14px",
                             }}
                           >
-                            Item Price:&nbsp; 200
+                            Item Price:&nbsp;{" "}
+                            {row?.paymentDetails?.paymentAmount}
                           </Typography>
                           <Typography
                             variant="h6"
@@ -303,7 +270,8 @@ const OrderDetailsPage = () => {
                               marginTop: "0.9rem",
                             }}
                           >
-                            Item Discount:&nbsp; 10
+                            Item Discount:&nbsp;{" "}
+                            {row?.paymentDetails?.paymentDiscount || "0"}
                           </Typography>
                           <Typography
                             variant="h6"
@@ -312,7 +280,7 @@ const OrderDetailsPage = () => {
                               marginTop: "0.9rem",
                             }}
                           >
-                            Total:&nbsp; 06450
+                            Total:&nbsp; {row?.paymentDetails?.paymentAmount}
                           </Typography>
                         </div>
                       </Box>
@@ -334,7 +302,7 @@ const OrderDetailsPage = () => {
                             fontSize: "0.90rem",
                           }}
                         >
-                          Devid Jack
+                          {row?.customerName}
                         </Typography>
                         <Typography
                           variant="h6"
@@ -358,7 +326,7 @@ const OrderDetailsPage = () => {
                             color: "#697a8d !important",
                           }}
                         >
-                          1234567890
+                          {row?.customerNumber}
                         </Typography>
                         <Typography
                           variant="h6"
@@ -390,7 +358,7 @@ const OrderDetailsPage = () => {
                             fontSize: "0.90rem",
                           }}
                         >
-                          Name:&nbsp; Devid Jack
+                          Name:&nbsp; {row?.shippingAddress?.name}
                         </Typography>
                         <Typography
                           variant="h6"
@@ -402,7 +370,7 @@ const OrderDetailsPage = () => {
                             color: "#697a8d !important",
                           }}
                         >
-                          Contact:&nbsp; 1234567890
+                          Contact:&nbsp; {row?.shippingAddress?.number}
                         </Typography>
                         <Typography
                           variant="h6"
@@ -414,7 +382,7 @@ const OrderDetailsPage = () => {
                             color: "#697a8d !important",
                           }}
                         >
-                          Country:&nbsp; India
+                          Country:&nbsp; {row?.shippingAddress?.country}
                         </Typography>
                         <Typography
                           variant="h6"
@@ -426,7 +394,7 @@ const OrderDetailsPage = () => {
                             color: "#697a8d !important",
                           }}
                         >
-                          City:&nbsp; Bhopal
+                          City:&nbsp; {row?.shippingAddress?.city}
                         </Typography>
                         <Typography
                           variant="h6"
@@ -438,7 +406,7 @@ const OrderDetailsPage = () => {
                             color: "#697a8d !important",
                           }}
                         >
-                          Zip Code:&nbsp; 2413
+                          Zip Code:&nbsp; {row?.shippingAddress?.pincode}
                         </Typography>
                       </Grid>
                     </div>
@@ -481,7 +449,7 @@ const OrderDetailsPage = () => {
                             color: "#697a8d !important",
                           }}
                         >
-                          Payment Received Status:&nbsp; Approved
+                          Payment Received Status:&nbsp; {row?.accountStatus}
                         </Typography>
                       </Grid>
                     </div>
@@ -495,98 +463,110 @@ const OrderDetailsPage = () => {
                   {/* <MonthlyEarnings /> */}
                   <DashboardCard title="Status Change">
                     <div>
-                      <Grid item xs={12}>
-                        <Typography
-                          variant="h6"
-                          gutterBottom
-                          style={{
-                            marginTop: 10,
-                            marginBottom: 10,
-                            fontSize: "0.90rem",
-                          }}
-                        >
-                          Change Order Status
-                        </Typography>
+                      <Grid container spacing={2}>
+                        <Grid item xs={12}>
+                          <Typography
+                            variant="h6"
+                            gutterBottom
+                            style={{
+                              marginTop: 10,
+                              marginBottom: 10,
+                              fontSize: "0.90rem",
+                            }}
+                          >
+                            Change Order Status
+                          </Typography>
+                          <Select
+                            size="small"
+                            fullWidth
+                            variant="outlined"
+                            value={formValues.orderStatus || ""} // Assuming 'orderStatus' is the name you want to store
+                            onChange={handleChange}
+                            name="orderStatus" // Name to identify in the state
+                          >
+                            <MenuItem value={"Select Options"}>
+                              Select Options
+                            </MenuItem>
+                            <MenuItem value={"Inventory"}>Inventory</MenuItem>
+                            <MenuItem value={"InDelivery"}>InDelivery</MenuItem>
+                            <MenuItem value={"ReadyToShip"}>
+                              ReadyToShip
+                            </MenuItem>
+                            <MenuItem value={"Delivered"}>Delivered</MenuItem>
 
-                        <Select
-                          size="small"
-                          fullWidth
-                          variant="outlined"
-                          defaultValue={"Select Options"}
-                        >
-                          <MenuItem value={"Select Options"}>
-                            Select Options
-                          </MenuItem>
-                          <MenuItem value={"Confirmed"}>Confirmed</MenuItem>
-                          <MenuItem value={"Pending"}>Pending</MenuItem>
-                          <MenuItem value={"Packging"}>Packging</MenuItem>
-                          <MenuItem value={"OutofDelivery"}>
-                            Out of Delivery
-                          </MenuItem>
-                          <MenuItem value={"Delivered"}>Delivered</MenuItem>
-                          <MenuItem value={"Returned"}>Returned</MenuItem>
-                          <MenuItem value={"FailedofDeliver"}>
-                            Failed of Deliver
-                          </MenuItem>
-                          <MenuItem value={"Canceled"}>Canceled</MenuItem>
-                        </Select>
+                            {/* Other menu items */}
+                          </Select>
+                        </Grid>
+                        <Grid item xs={12}>
+                          <Typography
+                            variant="h6"
+                            gutterBottom
+                            style={{
+                              marginTop: 10,
+                              marginBottom: 10,
+                              fontSize: "0.90rem",
+                            }}
+                          >
+                            Payment Status
+                          </Typography>
+                          <Select
+                            size="small"
+                            fullWidth
+                            variant="outlined"
+                            value={formValues.paymentStatus || ""} // Assuming 'paymentStatus' is the name you want to store
+                            onChange={handleChange}
+                            name="paymentStatus" // Name to identify in the state
+                          >
+                            <MenuItem value={"Select Options"}>
+                              Select Options
+                            </MenuItem>
+                            <MenuItem value={"Paid"}>Paid</MenuItem>
+                            <MenuItem value={"Unpaid"}>Unpaid</MenuItem>
+                          </Select>
+                        </Grid>
+                        <Grid item xs={12}>
+                          <Typography
+                            variant="h6"
+                            gutterBottom
+                            style={{
+                              marginTop: 10,
+                              marginBottom: 10,
+                              fontSize: "0.90rem",
+                            }}
+                          >
+                            Shipping Method
+                          </Typography>
+                          <Select
+                            size="small"
+                            fullWidth
+                            variant="outlined"
+                            value={formValues.shippingMethod || ""} // Assuming 'shippingMethod' is the name you want to store
+                            onChange={handleChange}
+                            name="shippingMethod" // Name to identify in the state
+                          >
+                            <MenuItem value={"Choose Delivery Type"}>
+                              Choose Delivery Type
+                            </MenuItem>
+                            <MenuItem value={"BySelfDeliveryMan"}>
+                              By Self Delivery Man
+                            </MenuItem>
+                            <MenuItem value={"ByThirdPartyDeliveryService"}>
+                              By Third Party Delivery Service
+                            </MenuItem>
+                          </Select>
+                        </Grid>
                       </Grid>
-                      <Grid item xs={12}>
-                        <Typography
-                          variant="h6"
-                          gutterBottom
-                          style={{
-                            marginTop: 10,
-                            marginBottom: 10,
-                            fontSize: "0.90rem",
-                          }}
-                        >
-                          Payment Status
-                        </Typography>
-
-                        <Select
-                          size="small"
-                          fullWidth
-                          variant="outlined"
-                          defaultValue={"Select Options"}
-                        >
-                          <MenuItem value={"Select Options"}>
-                            Select Options
-                          </MenuItem>
-                          <MenuItem value={"Paid"}>Paid</MenuItem>
-                          <MenuItem value={"Unpaid"}>Unpaid</MenuItem>
-                        </Select>
-                      </Grid>
-                      <Grid item xs={12}>
-                        <Typography
-                          variant="h6"
-                          gutterBottom
-                          style={{
-                            marginTop: 10,
-                            marginBottom: 10,
-                            fontSize: "0.90rem",
-                          }}
-                        >
-                          Shipping Method
-                        </Typography>
-
-                        <Select
-                          size="small"
-                          fullWidth
-                          variant="outlined"
-                          defaultValue={"Choose Delivery Type"}
-                        >
-                          <MenuItem value={"Choose Delivery Type"}>
-                            Choose Delivery Type
-                          </MenuItem>
-                          <MenuItem value={"BySelfDeliveryMan"}>
-                            By Self Delivery Man
-                          </MenuItem>
-                          <MenuItem value={"ByThirdPartyDeliveryService"}>
-                            By Third Party Delivery Service
-                          </MenuItem>
-                        </Select>
-                      </Grid>
+                    </div>
+                    <div
+                      style={{
+                        marginTop: 10,
+                        textAlign: "end",
+                      }}
+                      className="mt-2"
+                    >
+                      <Button onClick={handleStatusSubmit} variant="contained">
+                        Save
+                      </Button>
                     </div>
                   </DashboardCard>
                 </Grid>
@@ -605,6 +585,7 @@ const OrderDetailsPage = () => {
           </Grid>
         </Box>
       </PageContainer>
+      <Toaster />
     </>
   );
 };

@@ -5,7 +5,7 @@ import FullFeaturedCrudGrid from "../dataGrid/newtempOrder";
 import React, { useState } from "react";
 import { GridColDef } from "@mui/x-data-grid";
 import CommonDataModel from "@/utils/models/CommonDataModel";
-import { getAllOrder , getAllWebsiteOrder } from "@/utils/apis/Order";
+import { getAllWebsiteOrder } from "@/utils/apis/Order";
 import {
   TextField,
   MenuItem,
@@ -16,6 +16,7 @@ import {
   InputAdornment,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import OrderDetailsPage from "../../orders/orderDetails/page";
 
 const OrderFilter = ({ onFilterChange }) => {
   const [filters, setFilters] = useState({
@@ -115,7 +116,7 @@ const OrderFilter = ({ onFilterChange }) => {
   );
 };
 
-const StatsView = ({title}) => {
+const WebsiteOrderView = ({ title }) => {
   const orderColumnDefinition: GridColDef[] = [
     { field: "srNo", headerName: "Sr No.", flex: 1, editable: true },
     {
@@ -135,16 +136,20 @@ const StatsView = ({title}) => {
       editable: true,
     },
     {
-      field: "customerInfo",
-      headerName: "Customer Info",
+      field: "customerName",
+      headerName: "Customer Name",
       align: "left",
       flex: 1,
       headerAlign: "left",
       editable: true,
       valueGetter: (params) => {
-        const { shippingAddress } = params.row.userAddressDetails;
-        return `${shippingAddress.addressLine1}, ${shippingAddress.city}, ${shippingAddress.state}`;
+        return params.row.customerName;
       },
+      //   valueGetter: (params) => {
+      //     console.log(params.row, "row");
+      //     const shippingAddress = params.row.shippingAddress;
+      //     return `${shippingAddress.addressLine1}, ${shippingAddress.city}, ${shippingAddress.state}`;
+      //   },
     },
     {
       field: "totalAmount",
@@ -154,10 +159,7 @@ const StatsView = ({title}) => {
       headerAlign: "left",
       editable: true,
       valueGetter: (params) => {
-        const total = params.row.products.reduce(
-          (sum, product) => sum + product.price,
-          0
-        );
+        const total = params.row?.paymentDetails?.paymentAmount;
         return `₹${total}`;
       },
     },
@@ -180,7 +182,7 @@ const StatsView = ({title}) => {
       headerAlign: "left",
       editable: true,
       valueGetter: (params) => {
-        return params.row.paymentDetails.paymentMethod;
+        return params.row.accountApproval;
       },
     },
     {
@@ -191,11 +193,10 @@ const StatsView = ({title}) => {
       editable: true,
       flex: 1,
       valueGetter: (params) => {
-        return params.row.orderStatus.status;
+        return params.row.orderStatus;
       },
     },
   ];
-
   const [request, setRequest] = useState<boolean>();
   const [isClose, setIsClose] = useState(false);
   const [columnRow, setColumnRow] = useState([]);
@@ -205,35 +206,47 @@ const StatsView = ({title}) => {
   });
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState({});
-
+  const [IsOrder, setIsOrderDetails] = useState(false);
+  const [orderData, setOrderData] = useState("");
   React.useEffect(() => {
-    getAllOrder().then((orders) => {
+    getAllWebsiteOrder().then((orders) => {
+      console.log(orders, "ordders");
       const data = orders.map((order, index) => ({
         id: order.orderId,
         srNo: index + 1,
         orderId: order.orderId,
-        orderDate: order.createdAt,
-        userAddressDetails: order.userAddressDetails,
-        products: order.products,
+        orderDate: order.orderDate,
+        orderStatus: order.orderState,
+        customerName: order.customerName,
+        customerEmail: order.customerEmail,
+        customerOrderId :order.customerOrderId,
+        customerNumber: order.customerNumber,
+        discount: order.discount,
+        deliveryCharge: order.deliveryCharge,
+        accountApproval: order.approvalStatus,
+        accountantId: order.accountantId,
+        accountStatus: order.accountantStatus,
+        shippingAddress: order.shippingAddress,
+        totalPrice: order.totalPrice,
+        totalSalePrice: order.totalSalePrice,
+        products:order.products,
         paymentDetails: order.paymentDetails,
-        orderStatus: order.orderStatus,
       }));
 
+      console.log(data , 'data')
       setAllOrders({
         columns: orderColumnDefinition,
         rows: data,
       });
-
       setColumnRow(data);
     });
   }, [request, isClose]);
 
+ 
+
   const handleFilterChange = (filters) => {
-    getAllOrder().then((orders) => {
+    getAllWebsiteOrder().then((orders) => {
       const filteredOrders = orders.filter((order) => {
-        console.log(order?.orderStatus?.status, "orderStatus");
-        console.log(filters.orderStatus, "filters");
-        console.log(order.orderStatus?.status == filters.orderStatus, "detail")
         const orderStatus = order?.orderStatus?.status?.toLowerCase();
         const filterStatus = filters.orderStatus?.toLowerCase();
         const matchOrderStatus = filters.orderStatus
@@ -266,7 +279,6 @@ const StatsView = ({title}) => {
               searchQuery
             )
           : true;
-
         return (
           matchOrderStatus && matchCustomer && matchDate && matchSearchQuery
         );
@@ -294,11 +306,13 @@ const StatsView = ({title}) => {
         });
         setColumnRow(data);
       }
-     
     });
   };
 
-  const handleVisibilityClick = () => {};
+  const handleVisibilityClick = (id, data) => {
+    setOrderData(data);
+    setIsOrderDetails(true);
+  };
 
   // const handleSearch = (e) => {
   //   const newSearchQuery = e.target.value;
@@ -308,29 +322,35 @@ const StatsView = ({title}) => {
 
   return (
     <>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "1rem",
-        }}
-      >
-        <div>
-          <h2>All {title} Orders</h2>
-        </div>
-      </div>
-
-      <PageContainer title="Orders" description="Orders">
-        <Box mb={2}>
-          <DashboardCard title="Order Filter">
-            <OrderFilter onFilterChange={handleFilterChange} />
-          </DashboardCard>
-        </Box>
-        <Box>
-          <DashboardCard title={`${title} Order List`}>
+      {IsOrder ? (
+        <OrderDetailsPage
+          data={orderData}
+          onClose={() => setIsOrderDetails(false)}
+        />
+      ) : (
+        <>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: "1rem",
+            }}
+          >
             <div>
-              {/* <TextField
+              <h2>All {title} Orders</h2>
+            </div>
+          </div>
+          <PageContainer title="Orders" description="Orders">
+            <Box mb={2}>
+              <DashboardCard title="Order Filter">
+                <OrderFilter onFilterChange={handleFilterChange} />
+              </DashboardCard>
+            </Box>
+            <Box>
+              <DashboardCard title={`${title} Order List`}>
+                <div>
+                  {/* <TextField
                 fullWidth
                 variant="outlined"
                 size="small"
@@ -347,23 +367,26 @@ const StatsView = ({title}) => {
                   ),
                 }}
               /> */}
-            </div>
-            <FullFeaturedCrudGrid
-              rowData={allOrders?.rows}
-              columnData={allOrders?.columns}
-              setColumnRow={setAllOrders}
-              setIsClose={setIsClose}
-              isClose={isClose}
-              showVisibilityIcon={false}
-              handleVisibilityClick={handleVisibilityClick}
-              hideEditButton={true}
-              hideDownloadButton={false}
-            />
-          </DashboardCard>
-        </Box>
-      </PageContainer>
+                </div>
+                <FullFeaturedCrudGrid
+                  fullData={allOrders}
+                  rowData={allOrders?.rows}
+                  columnData={allOrders?.columns}
+                  setColumnRow={setAllOrders}
+                  setIsClose={setIsClose}
+                  isClose={isClose}
+                  showVisibilityIcon={false}
+                  handleVisibilityClick={handleVisibilityClick}
+                  hideEditButton={true}
+                  hideDownloadButton={false}
+                />
+              </DashboardCard>
+            </Box>
+          </PageContainer>
+        </>
+      )}
     </>
   );
 };
 
-export default StatsView;
+export default WebsiteOrderView;

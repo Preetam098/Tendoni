@@ -79,7 +79,7 @@ const FullFeaturedCrudGrid: React.FC<CommonDataGridProps> = ({
     handleVisibilityClick(id); // Call the prop function
   };
   const headerData: HeaderData[] = columnData;
-  const userInfo: Record<string, string> = {};
+  const userInfo: Record<string, string> = {  };
   headerData.forEach((item) => {
     userInfo[item.field] = "";
   });
@@ -130,9 +130,8 @@ const FullFeaturedCrudGrid: React.FC<CommonDataGridProps> = ({
     // Call your API to send the updated data to the backend
   };
 
-  const handleEditClick =
-    // newRow: object
-    (id: GridRowId, isEdit: boolean) => () => {
+  const handleEditClick = // newRow: object
+  (id: GridRowId, isEdit: boolean) => () => {
       // const updatedRow = { ...newRow, isNew: currentStatus };
 
       setCurrentStatus(isEdit);
@@ -190,14 +189,15 @@ const FullFeaturedCrudGrid: React.FC<CommonDataGridProps> = ({
 
   const TableData = [
     // ...columns,
-    ...(columns || []),
+    ...columnData || [],
     {
       field: "actions",
       type: "actions",
       headerName: "Actions",
       flex: 1,
       cellClassName: "actions",
-      getActions: ({ id }: any) => {
+      getActions: (data: any) => {
+        const { id } = data;
         const isInEditMode = rowModesModel[id]?.mode === GridRowModes.Edit;
         if (isInEditMode) {
           return [

@@ -35,8 +35,14 @@ import {
   CloudDownload,
   Close,
 } from "@mui/icons-material";
+import AccountNav from "../components/accountNav/NavView";
+import { getAllOrder, getAllWebsiteOrder } from "@/utils/apis/Order";
+import { approvePayment, postPayment } from "@/utils/apis/Payment";
+import toast, { Toaster } from "react-hot-toast";
 
-const AccountantPage = () => {
+
+
+const OrderPage = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -45,6 +51,10 @@ const AccountantPage = () => {
   const [paymentMode, setPaymentMode] = useState("");
   const [amount, setAmount] = useState("");
   const [notes, setNotes] = useState("");
+  const [allOrders, setAllOrders] = useState<any>("");
+  const[orderData , setOrderData] = useState<any>('')
+  const[message , setMessage] = useState('')
+  const[dueDate ,setDueDate] = useState('')
 
   const handlePopoverOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -56,9 +66,15 @@ const AccountantPage = () => {
 
   const open = Boolean(anchorEl);
 
-  const handleViewClick = () => {
+  const handleViewClick = (row) => {
     setSidebarOpen(true);
     handlePopoverClose();
+  };
+
+  const handlePopoverOpen = (event,row) => {
+console.log(row , 'row')
+    setOrderData(row)
+    setAnchorEl(event.currentTarget);
   };
 
   const handleSidebarClose = () => {
@@ -75,7 +91,7 @@ const AccountantPage = () => {
     handlePopoverClose();
   };
 
-  const handleAddPaymentClick = () => {
+  const handleAddPaymentClick = (orderData) => {
     setIsNewPaymentModalOpen(true);
     handlePopoverClose();
   };
@@ -94,8 +110,74 @@ const AccountantPage = () => {
   };
 
   const handleCreatePayment = () => {
-    // Create payment logic here
+    const payload=({
+      orderId:orderData.orderId,
+      paymentDate,
+      paymentMode,
+      amount,
+      notes,
+    })
+    postPayment(payload)
+    .then((response) => {
+      toast.success(`${response.message}`);
+      setMessage(response.message);
+      setSidebarOpen(false);
+      setIsNewPaymentModalOpen(false)
+    })
+    .catch((error) => {
+      setMessage(error);
+    });
   };
+
+
+  const handleApproved =()=>{
+    let errors = {};
+    if (!dueDate) {
+      errors.dueDate = "Due Date is required";
+      toast.error('Due Date is required')
+    }
+    if (Object.keys(errors).length > 0) {
+      setErrors(errors);
+      return;
+    }
+
+    const payload =({
+        orderData:orderData?.orderId,
+        dueDate,
+    })
+    approvePayment(payload)
+    .then((response) => {
+     
+      toast.success(`${response.message}`);
+      setMessage(response.message);
+      setSidebarOpen(false);
+      
+    })
+    .catch((error) => {
+      setMessage(error);
+    });
+  }
+
+  React.useEffect(() => {
+    getAllOrder().then((orders) => {
+      const data = orders.map((order, index) => ({
+        id: order.orderId,
+        srNo: index + 1,
+        orderId: order.orderId,
+        orderDate: order.orderDate,
+        orderStatus: order.orderState,
+        customerName: order.customerName,
+        accountApproval: order.approvalStatus,
+        accountStatus: order.accountantStatus,
+        shippingAddress: order.shippingAddress,
+        products: order.products,
+        paymentDetails: order.paymentDetails,
+      }));
+      setAllOrders(data);
+    });
+  } , [])
+
+  console.log(allOrders,'ordel')
 
   const paymentData = [
     {
@@ -132,13 +214,15 @@ const AccountantPage = () => {
           <h2>Sales Return / Credit Note</h2>
         </div>
       </div>
-      <PageContainer title="Sales Manager Details" description="Transaction">
+      <AccountNav />
+
+      <PageContainer title="Salesman Orders" description="Transaction">
         <Box flexGrow={1}>
           <Grid container spacing={3}>
             <Grid item xs={12} lg={12}>
               <Grid container spacing={3}>
                 <Grid item xs={12} lg={12}>
-                  <DashboardCard title="Accountant">
+                  <DashboardCard title="Salesman Orders">
                     <>
                       <TableContainer>
                         <Table
@@ -234,55 +318,24 @@ const AccountantPage = () => {
                             </TableRow>
                           </TableHead>
                           <TableBody>
-                            {[
-                              {
-                                InvoiceNo: "233",
-                                ReturnDate: "23-06-2024",
-                                Customer: "Satish",
-                                ReturnStatus: "Received",
-                                TotalAmount: "238",
-                                PaidAmount: "100",
-                                DueAmount: "100",
-                                PaymentStatus: "Unpaid",
-                              },
-                              {
-                                InvoiceNo: "233",
-                                ReturnDate: "23-06-2024",
-                                Customer: "Satish",
-                                ReturnStatus: "Received",
-                                TotalAmount: "238",
-                                PaidAmount: "100",
-                                DueAmount: "100",
-                                PaymentStatus: "Unpaid",
-                              },
-                              {
-                                InvoiceNo: "233",
-                                ReturnDate: "23-06-2024",
-                                Customer: "Satish",
-                                ReturnStatus: "Received",
-                                TotalAmount: "238",
-                                PaidAmount: "100",
-                                DueAmount: "100",
-                                PaymentStatus: "Unpaid",
-                              },
-                            ].map((row, index) => (
-                              <TableRow key={index}>
+                            {allOrders && allOrders.map((row, index) => (
+                              <TableRow >
                                 <TableCell>{index + 1}</TableCell>
-                                <TableCell>{row.InvoiceNo}</TableCell>
-                                <TableCell>{row.ReturnDate}</TableCell>
-                                <TableCell>{row.Customer}</TableCell>
-                                <TableCell>{row.ReturnStatus}</TableCell>
-                                <TableCell>{row.TotalAmount}</TableCell>
-                                <TableCell>{row.PaidAmount}</TableCell>
-                                <TableCell>{row.DueAmount}</TableCell>
-                                <TableCell>{row.PaymentStatus}</TableCell>
+                                <TableCell>{row.orderId}</TableCell>
+                                <TableCell>{row.orderDate}</TableCell>
+                                <TableCell>{row.customerName}</TableCell>
+                                <TableCell>{row.orderStatus}</TableCell>
+                                <TableCell>{row.paymentDetails?.paymentAmount}</TableCell>
+                                <TableCell>{row.paymentDetails?.paidAmount || '-'}</TableCell>
+                                <TableCell>{row.paymentDetails?.DueAmount || '-'}</TableCell>
+                                <TableCell>{row.paymentDetails?.paymentStatus}</TableCell>
                                 <TableCell>
                                   <IconButton
                                     aria-owns={
                                       open ? "mouse-over-popover" : undefined
                                     }
                                     aria-haspopup="true"
-                                    onClick={handlePopoverOpen}
+                                    onClick={(e)=>handlePopoverOpen(e , row)}
                                   >
                                     <MoreVert />
                                   </IconButton>
@@ -300,7 +353,7 @@ const AccountantPage = () => {
                                     }}
                                     onClose={handlePopoverClose}
                                   >
-                                    <MenuItem onClick={handleViewClick}>
+                                    <MenuItem onClick={()=>handleViewClick(row)}>
                                       <IconButton>
                                         <Visibility />
                                       </IconButton>
@@ -318,7 +371,7 @@ const AccountantPage = () => {
                                       </IconButton>
                                       View Payment
                                     </MenuItem>
-                                    <MenuItem onClick={handleAddPaymentClick}>
+                                    <MenuItem onClick={()=>handleAddPaymentClick(orderData)}>
                                       <IconButton>
                                         <AddCircleOutline />
                                       </IconButton>
@@ -333,7 +386,7 @@ const AccountantPage = () => {
                                   </Popover>
                                 </TableCell>
                               </TableRow>
-                            ))}
+                            ))} 
                           </TableBody>
                         </Table>
                       </TableContainer>
@@ -375,10 +428,10 @@ const AccountantPage = () => {
               </span>
             </Typography>
             <Box>
-              <Button variant="contained" onClick={handleAddPaymentClick}>
+              <Button variant="contained" onClick={()=>handleAddPaymentClick(orderData)}>
                 Add New Payment
               </Button>
-              <Button variant="contained" style={{ marginLeft: "5px" }}>
+              <Button variant="contained" onClick={handleApproved} style={{ marginLeft: "5px" }}>
                 Approved Payment
               </Button>
               <IconButton onClick={handleSidebarClose}>
@@ -405,7 +458,7 @@ const AccountantPage = () => {
                 <TableRow>
                   <TableCell>
                     <Typography variant="subtitle1">
-                      2024-05-28 12:42 am
+                   {orderData?.orderDate}
                     </Typography>
                   </TableCell>
                   <TableCell>
@@ -421,12 +474,16 @@ const AccountantPage = () => {
                           fontSize: "12px",
                         }}
                       >
-                        Recevied
+                   {orderData?.orderStatus}
+                      
                       </span>
                     </Typography>
                   </TableCell>
                   <TableCell>
-                    <Typography variant="subtitle1">John Doe</Typography>
+                    <Typography variant="subtitle1">
+                   {orderData?.customerName}
+                    
+                    </Typography>
                   </TableCell>
                 </TableRow>
               </TableBody>
@@ -453,22 +510,23 @@ const AccountantPage = () => {
                         style={{
                           border: "1px solid #ffccc7",
                           backgroundColor: "#fff2f0",
-                          color: "#ff4d4f",
+                          color: "#00FF00",
                           borderColor: "#ffccc7",
                           paddingInline: "7px",
                           fontSize: "12px",
                           borderRadius: "4px",
                         }}
                       >
-                        Unpaid
+                   {orderData?.paymentDetails?.paymentStatus}
+                   {}
                       </span>
                     </Typography>
                   </TableCell>
                   <TableCell>
-                    <Typography variant="subtitle1">John Doe</Typography>
+                    <Typography variant="subtitle1">{orderData?.customerName}</Typography>
                   </TableCell>
                   <TableCell>
-                    <Typography variant="subtitle1">500</Typography>
+                    <Typography variant="subtitle1">{orderData.paymentDetails?.paymentAmount}</Typography>
                   </TableCell>
                 </TableRow>
               </TableBody>
@@ -486,10 +544,10 @@ const AccountantPage = () => {
                 </TableRow>
                 <TableRow>
                   <TableCell>
-                    <Typography variant="subtitle1">400</Typography>
+                    <Typography variant="subtitle1">{orderData.paymentDetails?.paidAmount || '-'}</Typography>
                   </TableCell>
                   <TableCell>
-                    <Typography variant="subtitle1">100</Typography>
+                    <Typography variant="subtitle1">{orderData.paymentDetails?.dueAmount || '-'}</Typography>
                   </TableCell>
                   <TableCell>
                     <Typography variant="subtitle1">00.0</Typography>
@@ -510,11 +568,14 @@ const AccountantPage = () => {
               </TableBody>
 
               <Typography variant="subtitle1">Due Date</Typography>
-              <div style={{display: 'flex', gap:"10%", alignItems: "center"}}>
+              <div
+                style={{ display: "flex", gap: "10%", alignItems: "center" }}
+              >
                 <div>
                   <TextField
                     required
                     label="Due Date"
+                    onChange={(e) => setDueDate(e.target.value)}
                     type="date"
                     InputLabelProps={{
                       shrink: true,
@@ -606,7 +667,7 @@ const AccountantPage = () => {
         open={isNewPaymentModalOpen}
         onClose={handleNewPaymentCloseModal}
       >
-        <DialogTitle>Add New Payment</DialogTitle>
+        <DialogTitle onClick={()=>handleAddPaymentClick(orderData)}>Add New Payment</DialogTitle>
         <Divider />
         <DialogContent>
           <form>
@@ -658,16 +719,19 @@ const AccountantPage = () => {
         <DialogActions>
           <Button onClick={handleNewPaymentCloseModal}>Cancel</Button>
           <Button
-            onClick={handleCreatePayment}
+           onClick={handleCreatePayment}
             variant="contained"
             color="primary"
+            type="submit"
           >
             Create
           </Button>
         </DialogActions>
       </Dialog>
+      <Toaster />
+
     </>
   );
 };
 
-export default AccountantPage;
+export default OrderPage;
