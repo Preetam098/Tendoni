@@ -16,14 +16,14 @@ const AccountNav = () => {
         <div>
           <div style={{ display: "flex", alignItems: "center" }}>
             <Link href="/accountant">
-              <Button>Sales </Button>
+              <Button>Salesman </Button>
             </Link>
           </div>
         </div>
         <div>
           <div style={{ display: "flex", alignItems: "center" }}>
             <Link href="/accountant/order">
-              <Button>Orders</Button>
+              <Button>Orders From Ecommerce</Button>
             </Link>
           </div>
         </div>

@@ -15,7 +15,8 @@ import UserCreatePage from "../createuser/page";
 import Snackers from "@/utils/models/Snackers";
 import { Switch } from "@mui/material";
 
-const UsersDetails = () => {
+const UsersDetails = ({ data, onClose }) => {
+  console.log("data", data);
   const UsersColumnDefinition: GridColDef[] = [
     { field: "firstName", headerName: "First Name", flex: 1, editable: true },
     // { field: "id", headerName: "id", flex: 1, editable: true },

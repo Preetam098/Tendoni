@@ -324,6 +324,7 @@ const WebsiteOrderView = ({ title }) => {
     <>
       {IsOrder ? (
         <OrderDetailsPage
+        title={"Ecommerce"}
           data={orderData}
           onClose={() => setIsOrderDetails(false)}
         />

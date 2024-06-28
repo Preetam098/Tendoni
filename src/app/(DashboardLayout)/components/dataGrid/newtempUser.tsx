@@ -36,7 +36,7 @@ interface CommonDataGridProps {
   putApi?: (editData: { newData: usersputInformation; userId: string }) => void;
   deleteApi?: (deleteData: any) => void;
   showVisibilityIcon?: boolean;
-  handleVisibilityClick?: (id: any) => void;
+  handleVisibilityClick?: (id: any, data: any) => void;
   hideEditButton?: boolean;
   hideDeleteButton?: boolean;
   setIsClose?: any;
@@ -77,8 +77,8 @@ const FullFeaturedCrudGrid: React.FC<CommonDataGridProps> = ({
   const [itemIdToDelete, setItemIdToDelete] = useState<GridRowId | null>(null);
   const [newRowData, setNewRowData] = React.useState<any>(null);
   const [currentStatus, setCurrentStatus] = React.useState<any>(false);
-  const handleVisibilityIconClick = (id: GridRowId) => () => {
-    handleVisibilityClick(id); // Call the prop function
+  const handleVisibilityIconClick = (id: GridRowId, data: any) => () => {
+    handleVisibilityClick(id, data);
   };
   const headerData: HeaderData[] = columnData;
   const userInfo: Record<string, string> = {};
@@ -206,7 +206,8 @@ const FullFeaturedCrudGrid: React.FC<CommonDataGridProps> = ({
       headerName: "Actions",
       flex: 1,
       cellClassName: "actions",
-      getActions: ({ id }: any) => {
+      getActions: (data: any) => {
+        const { id } = data;
         const isInEditMode = rowModesModel[id]?.mode === GridRowModes.Edit;
         if (isInEditMode) {
           return [
@@ -258,7 +259,7 @@ const FullFeaturedCrudGrid: React.FC<CommonDataGridProps> = ({
               icon={<VisibilityOutlinedIcon />}
               label="Visibility"
               color="inherit"
-              onClick={handleVisibilityIconClick(id)}
+              onClick={handleVisibilityIconClick(id, data)}
             />
           );
         }
@@ -269,6 +270,9 @@ const FullFeaturedCrudGrid: React.FC<CommonDataGridProps> = ({
   ];
 
   return (
+<>
+   
+
     <Box>
       <DataGrid
         rows={rowData}
@@ -299,6 +303,9 @@ const FullFeaturedCrudGrid: React.FC<CommonDataGridProps> = ({
         }}
       />
     </Box>
+
+    
+      </>
   );
 };
 

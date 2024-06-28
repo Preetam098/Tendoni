@@ -32,7 +32,7 @@ import { postOrderStatus } from "@/utils/apis/Order";
 import React, { useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 
-const OrderDetailsPage = ({ data, onClose }) => {
+const OrderDetailsPage = ({ data, onClose , title }) => {
   const { row } = data;
   const { customerOrderId } = data.row;
   const { products } = data.row;
@@ -42,14 +42,13 @@ const OrderDetailsPage = ({ data, onClose }) => {
   });
   const [errors, setErrors] = useState("");
 
-  console.log(data, "data");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormValues({ ...formValues, [name]: value });
   };
 
-  console.log("fomr", formValues);
+
 
   const handleStatusSubmit = () => {
     if (!formValues?.orderStatus) {
@@ -107,6 +106,14 @@ const OrderDetailsPage = ({ data, onClose }) => {
       filterable: true,
     },
     {
+      field: "quantity",
+      headerName: "Quantity",
+      type: "number",
+      width: 150,
+      editable: true,
+      filterable: true,
+    },
+    {
       field: "TotalPrice",
       headerName: "Total Price",
       type: "number",
@@ -116,13 +123,15 @@ const OrderDetailsPage = ({ data, onClose }) => {
     },
   ];
   const rows = products.map((product, index) => ({
+    
     id: index + 1,
     itemName: product.ProductName,
-    itemPrice: `$${product.price}`,
+    itemPrice: `₹${product.price}`,
     productVariant: product.value,
     Tax: 0, // Replace with actual tax value if available
-    ItemDiscount: 0, // Replace with actual discount value if available
-    TotalPrice: parseInt(product.price) * parseInt(product.quantity), // Calculate total price
+    ItemDiscount: product.discount, // Replace with actual discount value if available
+    quantity:product.quantity,
+    TotalPrice: row.totalPrice || row.paymentDetails?.totalMaxPrice, // Calculate total price
   }));
 
   return (
@@ -138,7 +147,7 @@ const OrderDetailsPage = ({ data, onClose }) => {
         <div>
           <div style={{ display: "flex", alignItems: "center" }}>
             <Typography variant="h4" sx={{ fontSize: "1.125rem" }}>
-              Ecommerce Order Details
+              {title} Order Details
             </Typography>
           </div>
         </div>
@@ -280,7 +289,7 @@ const OrderDetailsPage = ({ data, onClose }) => {
                               marginTop: "0.9rem",
                             }}
                           >
-                            Total:&nbsp; {row?.paymentDetails?.paymentAmount}
+                            Total:&nbsp; {row?.totalPrice}
                           </Typography>
                         </div>
                       </Box>
@@ -338,7 +347,7 @@ const OrderDetailsPage = ({ data, onClose }) => {
                             color: "#697a8d !important",
                           }}
                         >
-                          customer@gmail.com
+                          {row.customerEmail}
                         </Typography>
                       </Grid>
                     </div>
@@ -480,12 +489,12 @@ const OrderDetailsPage = ({ data, onClose }) => {
                             size="small"
                             fullWidth
                             variant="outlined"
-                            value={formValues.orderStatus || ""} // Assuming 'orderStatus' is the name you want to store
+                            value={formValues.orderStatus || "Select Status"} // Assuming 'orderStatus' is the name you want to store
                             onChange={handleChange}
                             name="orderStatus" // Name to identify in the state
                           >
-                            <MenuItem value={"Select Options"}>
-                              Select Options
+                            <MenuItem value={"Select Status"}>
+                              Select Status
                             </MenuItem>
                             <MenuItem value={"Inventory"}>Inventory</MenuItem>
                             <MenuItem value={"InDelivery"}>InDelivery</MenuItem>
@@ -513,12 +522,12 @@ const OrderDetailsPage = ({ data, onClose }) => {
                             size="small"
                             fullWidth
                             variant="outlined"
-                            value={formValues.paymentStatus || ""} // Assuming 'paymentStatus' is the name you want to store
+                            value={formValues.paymentStatus || "Select Status"} // Assuming 'paymentStatus' is the name you want to store
                             onChange={handleChange}
                             name="paymentStatus" // Name to identify in the state
                           >
-                            <MenuItem value={"Select Options"}>
-                              Select Options
+                            <MenuItem value={"Select Status"}>
+                              Select Status
                             </MenuItem>
                             <MenuItem value={"Paid"}>Paid</MenuItem>
                             <MenuItem value={"Unpaid"}>Unpaid</MenuItem>
@@ -540,7 +549,7 @@ const OrderDetailsPage = ({ data, onClose }) => {
                             size="small"
                             fullWidth
                             variant="outlined"
-                            value={formValues.shippingMethod || ""} // Assuming 'shippingMethod' is the name you want to store
+                            value={formValues.shippingMethod || "Choose Delivery Type"} // Assuming 'shippingMethod' is the name you want to store
                             onChange={handleChange}
                             name="shippingMethod" // Name to identify in the state
                           >

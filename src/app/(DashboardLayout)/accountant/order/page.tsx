@@ -149,18 +149,18 @@ const OrderPage = () => {
   };
 
   const handleApproved = () => {
-    let errors = {};
-    if (!dueDate) {
-      errors.dueDate = "Due Date is required";
-      toast.error('Due Date is required')
-    }
-    if (Object.keys(errors).length > 0) {
-      setErrors(errors);
-      return;
-    }
+    // let errors = {};
+    // if (!dueDate) {
+    //   errors.dueDate = "Due Date is required";
+    //   toast.error('Due Date is required')
+    // }
+    // if (Object.keys(errors).length > 0) {
+    //   setErrors(errors);
+    //   return;
+    // }
     const payload = {
       orderId: orderData?.customerOrderId,
-      dueDate,
+      // dueDate,
     };
     approvePayment(payload)
       .then((response) => {
@@ -306,17 +306,10 @@ const OrderPage = () => {
                                   variant="subtitle1"
                                   fontSize="0.75rem"
                                 >
-                                  <b>Paid Amount</b>
+                                  <b>Payment Method</b>
                                 </Typography>
                               </TableCell>
-                              <TableCell>
-                                <Typography
-                                  variant="subtitle1"
-                                  fontSize="0.75rem"
-                                >
-                                  <b>Due Amount</b>
-                                </Typography>
-                              </TableCell>
+                              
                               <TableCell>
                                 <Typography
                                   variant="subtitle1"
@@ -347,11 +340,9 @@ const OrderPage = () => {
                                   <TableCell>
                                     {row.paymentDetails?.paymentAmount}
                                   </TableCell>
+                               
                                   <TableCell>
-                                    {row.paymentDetails?.paidAmount || "-"}
-                                  </TableCell>
-                                  <TableCell>
-                                    {row.paymentDetails?.DueAmount || "-"}
+                                    {row.paymentDetails?.paymentMethod || "-"}
                                   </TableCell>
                                   <TableCell>
                                     {row.paymentDetails?.paymentStatus}
@@ -613,7 +604,7 @@ const OrderPage = () => {
                 </TableRow>
               </TableBody>
 
-              <Typography variant="subtitle1">Due Date</Typography>
+              {/* <Typography variant="subtitle1">Due Date</Typography>
               <div
                 style={{ display: "flex", gap: "10%", alignItems: "center" }}
               >
@@ -638,7 +629,7 @@ const OrderPage = () => {
                 <div>
                   <Button variant="contained">Save</Button>
                 </div>
-              </div>
+              </div> */}
             </Table>
           </TableContainer>
         </Box>

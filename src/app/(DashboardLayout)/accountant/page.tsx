@@ -177,12 +177,13 @@ const OrderPage = () => {
 
   React.useEffect(() => {
     getAllOrder().then((orders) => {
+      console.log(orders , 'orders')
       const data = orders.map((order, index) => ({
-        id: order.orderId,
+        id: order.OrderId,
         srNo: index + 1,
         orderId: order.orderId,
         orderDate: order.orderDate,
-        orderStatus: order.orderState,
+        orderStatus: order.orderState?.status,
         customerName: order.customerName,
         accountApproval: order.approvalStatus,
         accountStatus: order.accountantStatus,
@@ -194,7 +195,7 @@ const OrderPage = () => {
     });
   }, []);
 
-  console.log(allOrders, "ordel");
+console.log(allOrders ,'all')
 
   const paymentData = [
     {
@@ -339,18 +340,18 @@ const OrderPage = () => {
                               allOrders.map((row, index) => (
                                 <TableRow>
                                   <TableCell>{index + 1}</TableCell>
-                                  <TableCell>{row.orderId}</TableCell>
+                                  <TableCell>{row.id}</TableCell>
                                   <TableCell>{row.orderDate}</TableCell>
                                   <TableCell>{row.customerName}</TableCell>
                                   <TableCell>{row.orderStatus}</TableCell>
                                   <TableCell>
-                                    {row.paymentDetails?.paymentAmount}
+                                    {row.paymentDetailsa?.totalMaxPrice}
                                   </TableCell>
                                   <TableCell>
                                     {row.paymentDetails?.paidAmount || "-"}
                                   </TableCell>
                                   <TableCell>
-                                    {row.paymentDetails?.DueAmount || "-"}
+                                    {row.paymentDetails?.paymentDue || "-"}
                                   </TableCell>
                                   <TableCell>
                                     {row.paymentDetails?.paymentStatus}

@@ -367,7 +367,7 @@ const UserCreatePage: React.FC<AddUsersPageProps> = ({
           <>
             <div style={{ display: "flex", alignItems: "center" }}>
               <Typography variant="h3" sx={{ fontSize: "1.250rem" }}>
-                {isUserIdVisible ? "Update a User" : "Add a New User"}
+                {isUserIdVisible ? "User Details " : "Add a New User"}
               </Typography>
             </div>
             <Typography
@@ -437,7 +437,7 @@ const UserCreatePage: React.FC<AddUsersPageProps> = ({
                     ) : (
                       ""
                     )}
-                    <DashboardCard title="Add New User">
+                    <DashboardCard title="User">
                       <Grid container xs={12} spacing={4}>
                         <Grid item xs={6}>
                           <Typography

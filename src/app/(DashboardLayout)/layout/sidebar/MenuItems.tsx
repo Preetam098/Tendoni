@@ -72,12 +72,7 @@ const Menuitems = [
         icon: IconUsers,
         href: "/users",
       },
-      {
-        id: uniqueId(),
-        title: "User Details",
-        icon: IconListDetails,
-        href: "/users/usersDetails",
-      },
+      
       {
         navlabal: true,
         subheader: "Tasks",
@@ -87,12 +82,6 @@ const Menuitems = [
         title: "Tasks",
         icon: IconLayoutList,
         href: "/task",
-      },
-      {
-        id: uniqueId(),
-        title: "Tasks Details",
-        icon: IconLayoutList,
-        href: "/task/taskDetail",
       },
     ],
   },
@@ -110,12 +99,6 @@ const Menuitems = [
         title: "Salesman Orders ",
         icon: IconClipboardData,
         href: "/salesmanOrders",
-      },
-      {
-        id: uniqueId(),
-        title: "Order Details",
-        icon: IconClipboardList,
-        href: "/salesmanOrders/orderDetails",
       },
       {
         navlabel: true,
